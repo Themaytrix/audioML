@@ -24,19 +24,49 @@ class MLP:
             w = np.random.rand(layers[i],layers[i+1])
             
             self.weight.append(w)
+        
+        self.activations = []
+        
+        for i in range(len(layers)):
+            # instantiate dummy activations to be 1D array
+            activation = np.zeros(layers[i])
+            self.activations.append(activation)
+        
+        self.derivatives = []
+        
+        for i in range(len(layers)-1):
+            # instantiate dummy activations to be 1D array
+            derivative = np.zeros(layers[i],layers[i]+1)
+            self.derivatives.append(derivative)
+        
             
     def fowardpropagation(self, inputs):
         activations = inputs
+        self.activations[0] = inputs
         
         # calculating the net sum for each layer
-        for w in self.weight:
+        for i,w in enumerate(self.weight):
             net_inputs = np.dot(activations,w)
             # print(net_inputs)
             
             # calculate the activation i.e input for the next layer
             activations = self._sigmoid(net_inputs)
+            self.activations[i+1] = activations
         
         return activations
+    
+    def backpropagate(self,error):
+        # dE/dW = (y-a(i+1))*s'(h(i+1))*a_i
+        # s'(h(i+1)) = s(hi+1)(1-s(h(i+1)))
+        # a(i+1) = s(h(i+1))
+        
+        # loop in reverse order
+        for i in reversed(range(self.derivatives)):
+            activations = self.activations[i+1]
+            delta = error * self._sigmoid_derivative(activations)
+            
+    def _sigmoid_derivative(self,x):
+        return x*(1.0-x)
     
     def _sigmoid(self,net_inputs):
         y =1/ (1+ np.exp(-net_inputs))
